@@ -1,7 +1,8 @@
-package com.secure.vivaran.service;
+package com.secure.vivaran.services.impl;
 
 import com.secure.vivaran.models.Note;
 import com.secure.vivaran.repositories.NoteRepository;
+import com.secure.vivaran.services.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

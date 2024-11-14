@@ -1,4 +1,4 @@
-package com.secure.vivaran.service;
+package com.secure.vivaran.services;
 
 import com.secure.vivaran.models.Note;
 

@@ -1,7 +1,7 @@
 package com.secure.vivaran.controllers;
 
 import com.secure.vivaran.models.Note;
-import com.secure.vivaran.service.NoteService;
+import com.secure.vivaran.services.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
