@@ -16,12 +16,13 @@ import java.util.Objects;
 @Data
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
-
+//for the current user, this class helps spring security to understand and register our custom user entity
     private Long id;
     private String username;
     private String email;
 
     @JsonIgnore
+    //added this to ignore password field when interacting with APIs
     private String password;
 
     private boolean is2faEnabled;

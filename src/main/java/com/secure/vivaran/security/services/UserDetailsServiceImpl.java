@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
+    //this clas helps spring security fetch data from the database
     @Autowired
     UserRepository userRepository;
 
