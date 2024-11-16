@@ -1,6 +1,8 @@
 package com.secure.vivaran.controllers;
 
 import com.secure.vivaran.security.jwt.JwtUtils;
+import com.secure.vivaran.security.request.LoginRequest;
+import com.secure.vivaran.security.response.LoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
