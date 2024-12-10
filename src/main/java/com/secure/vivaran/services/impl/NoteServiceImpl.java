@@ -14,7 +14,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Autowired
     private NoteRepository noteRepository;
-
+    @Autowired
     private AuditLogService auditLogService;
 
     @Override
