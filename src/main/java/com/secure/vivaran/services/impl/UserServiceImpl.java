@@ -5,10 +5,12 @@ import com.secure.vivaran.models.AppRole;
 import com.secure.vivaran.models.PasswordResetToken;
 import com.secure.vivaran.models.Role;
 import com.secure.vivaran.models.User;
+import com.secure.vivaran.repositories.PasswordResetTokenRepository;
 import com.secure.vivaran.repositories.RoleRepository;
 import com.secure.vivaran.repositories.UserRepository;
 import com.secure.vivaran.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
+    @Value("${frontend.url}")
+    String frontendUrl;
     @Autowired
     PasswordEncoder passwordEncoder;
     
@@ -28,6 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     RoleRepository roleRepository;
+
+    @Autowired
+    PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Override
     public void updateUserRole(Long userId, String roleName) {
@@ -130,5 +137,7 @@ public class UserServiceImpl implements UserService {
         String token = UUID.randomUUID().toString();
         Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
         PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
+        passwordResetTokenRepository.save(resetToken);
+        String resetUrl = frontendUrl + "/reset-password?token" + token;
     }
 }
