@@ -2,6 +2,7 @@ package com.secure.vivaran.services.impl;
 
 import com.secure.vivaran.dtos.UserDTO;
 import com.secure.vivaran.models.AppRole;
+import com.secure.vivaran.models.PasswordResetToken;
 import com.secure.vivaran.models.Role;
 import com.secure.vivaran.models.User;
 import com.secure.vivaran.repositories.RoleRepository;
@@ -11,8 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -117,5 +121,14 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update password");
         }
+    }
+
+    @Override
+    public void generatePasswordResetToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+        String token = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
+        PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
     }
 }
