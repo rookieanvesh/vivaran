@@ -9,6 +9,7 @@ import com.secure.vivaran.repositories.PasswordResetTokenRepository;
 import com.secure.vivaran.repositories.RoleRepository;
 import com.secure.vivaran.repositories.UserRepository;
 import com.secure.vivaran.services.UserService;
+import com.secure.vivaran.utils.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,11 +23,13 @@ import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
+
     @Value("${frontend.url}")
     String frontendUrl;
+
     @Autowired
     PasswordEncoder passwordEncoder;
-    
+
     @Autowired
     UserRepository userRepository;
 
@@ -35,6 +38,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    EmailService emailService;
 
     @Override
     public void updateUserRole(Long userId, String roleName) {
@@ -47,7 +53,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    //@PreAuthorize("hasRole('ROLE_ADMIN')")
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -56,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUserById(Long id) {
-//return userRepository.findById(id).orElseThrow();
+//        return userRepository.findById(id).orElseThrow();
         User user = userRepository.findById(id).orElseThrow();
         return convertToDto(user);
     }
@@ -80,11 +85,14 @@ public class UserServiceImpl implements UserService {
                 user.getUpdatedDate()
         );
     }
+
     @Override
     public User findByUsername(String username) {
         Optional<User> user = userRepository.findByUserName(username);
         return user.orElseThrow(() -> new RuntimeException("User not found with username: " + username));
     }
+
+
     @Override
     public void updateAccountLockStatus(Long userId, boolean lock) {
         User user = userRepository.findById(userId).orElseThrow(()
@@ -92,10 +100,13 @@ public class UserServiceImpl implements UserService {
         user.setAccountNonLocked(!lock);
         userRepository.save(user);
     }
+
+
     @Override
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
     }
+
     @Override
     public void updateAccountExpiryStatus(Long userId, boolean expire) {
         User user = userRepository.findById(userId).orElseThrow(()
@@ -103,6 +114,7 @@ public class UserServiceImpl implements UserService {
         user.setAccountNonExpired(!expire);
         userRepository.save(user);
     }
+
     @Override
     public void updateAccountEnabledStatus(Long userId, boolean enabled) {
         User user = userRepository.findById(userId).orElseThrow(()
@@ -118,6 +130,8 @@ public class UserServiceImpl implements UserService {
         user.setCredentialsNonExpired(!expire);
         userRepository.save(user);
     }
+
+
     @Override
     public void updatePassword(Long userId, String password) {
         try {
@@ -131,13 +145,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void generatePasswordResetToken(String email) {
+    public void generatePasswordResetToken(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         String token = UUID.randomUUID().toString();
         Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
         PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
         passwordResetTokenRepository.save(resetToken);
-        String resetUrl = frontendUrl + "/reset-password?token" + token;
+
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        // Send email to user
+        emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
     }
 }
