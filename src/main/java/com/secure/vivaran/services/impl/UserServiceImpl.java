@@ -8,12 +8,17 @@ import com.secure.vivaran.models.User;
 import com.secure.vivaran.repositories.PasswordResetTokenRepository;
 import com.secure.vivaran.repositories.RoleRepository;
 import com.secure.vivaran.repositories.UserRepository;
+import com.secure.vivaran.security.response.MessageResponse;
 import com.secure.vivaran.services.UserService;
 import com.secure.vivaran.utils.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -157,5 +162,23 @@ public class UserServiceImpl implements UserService {
         String resetUrl = frontendUrl + "/reset-password?token=" + token;
         // Send email to user
         emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
+    }
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid password reset token"));
+
+        if (resetToken.isUsed())
+            throw new RuntimeException("Password reset token has already been used");
+
+        if (resetToken.getExpiryDate().isBefore(Instant.now()))
+            throw new RuntimeException("Password reset token has expired");
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
     }
 }
