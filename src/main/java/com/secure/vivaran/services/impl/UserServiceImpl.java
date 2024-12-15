@@ -8,17 +8,12 @@ import com.secure.vivaran.models.User;
 import com.secure.vivaran.repositories.PasswordResetTokenRepository;
 import com.secure.vivaran.repositories.RoleRepository;
 import com.secure.vivaran.repositories.UserRepository;
-import com.secure.vivaran.security.response.MessageResponse;
 import com.secure.vivaran.services.UserService;
 import com.secure.vivaran.utils.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -180,5 +175,19 @@ public class UserServiceImpl implements UserService {
 
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user;
+    }
+    @Override
+    public User registerUser(User user){
+        if(user.getPassword() != null){
+           user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepository.save(user);
+
     }
 }

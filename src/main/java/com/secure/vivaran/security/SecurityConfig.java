@@ -55,13 +55,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/csrf-token").permitAll()
                         .requestMatchers("/api/auth/public/**").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/api/images/**").permitAll()  // Allow OPTIONS requests
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         .requestMatchers("/api/images/upload").authenticated()  // Specifically match upload endpoint
                         .requestMatchers(HttpMethod.POST, "/api/images/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/images/**").authenticated()
                         .anyRequest().authenticated())
-                .exceptionHandling(exception ->
+                        .oauth2Login(oauth -> {
+
+                        });
+                http.exceptionHandling(exception ->
                         exception.authenticationEntryPoint(unauthorizedHandler))
                 .addFilterBefore(authenticationJwtTokenFilter(),
                         UsernamePasswordAuthenticationFilter.class)
