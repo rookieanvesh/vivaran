@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -49,11 +50,16 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/auth/public/**"))
+                        .ignoringRequestMatchers("/api/auth/public/**", "/api/images/**"))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/csrf-token").permitAll()
                         .requestMatchers("/api/auth/public/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/images/**").permitAll()  // Allow OPTIONS requests
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                        .requestMatchers("/api/images/upload").authenticated()  // Specifically match upload endpoint
+                        .requestMatchers(HttpMethod.POST, "/api/images/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/images/**").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(unauthorizedHandler))
