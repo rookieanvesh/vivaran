@@ -1,5 +1,6 @@
 package com.secure.vivaran.security;
 
+import com.secure.vivaran.config.OAuth2LoginSuccessHandler;
 import com.secure.vivaran.models.AppRole;
 import com.secure.vivaran.models.Role;
 import com.secure.vivaran.models.User;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,6 +42,10 @@ public class SecurityConfig {
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
+    @Autowired
+    @Lazy
+    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
@@ -62,8 +68,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/images/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/images/**").authenticated()
                         .anyRequest().authenticated())
-                        .oauth2Login(oauth -> {
-
+                        .oauth2Login(oauth2 -> {
+                            oauth2.successHandler(oAuth2LoginSuccessHandler);
                         });
                 http.exceptionHandling(exception ->
                         exception.authenticationEntryPoint(unauthorizedHandler))
