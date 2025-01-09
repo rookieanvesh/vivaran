@@ -56,11 +56,13 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/auth/public/**", "/api/images/**"))
+                        .ignoringRequestMatchers("/api/auth/public/**", "/api/images/**",
+                                "api/public/chatAI/**"))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/csrf-token").permitAll()
                         .requestMatchers("/api/auth/public/**").permitAll()
+                        .requestMatchers("/api/public/chatAI/**").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/api/images/**").permitAll()  // Allow OPTIONS requests
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
