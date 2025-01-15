@@ -3,6 +3,7 @@ package com.secure.vivaran.controllers;
 import com.secure.vivaran.dtos.UserDTO;
 import com.secure.vivaran.models.Role;
 import com.secure.vivaran.models.User;
+import com.secure.vivaran.services.ReviewService;
 import com.secure.vivaran.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,8 @@ public class AdminController {
 
     @Autowired
     UserService userService;
-
+    @Autowired
+    ReviewService reviewService;
     //@PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/getusers")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -72,6 +74,16 @@ public class AdminController {
             return ResponseEntity.ok("Password updated");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    @DeleteMapping("/reviews/{id}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long id) {
+        try {
+            reviewService.deleteReview(id);
+            return ResponseEntity.ok("Review deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete review");
         }
     }
 }

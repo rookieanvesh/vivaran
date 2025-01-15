@@ -48,6 +48,10 @@ public class UserServiceImpl implements UserService {
     TotpService totpService;
 
     @Override
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+    @Override
     public void updateUserRole(Long userId, String roleName) {
         User user = userRepository.findById(userId).orElseThrow(()
                 -> new RuntimeException("User not found"));
@@ -69,6 +73,11 @@ public class UserServiceImpl implements UserService {
 //        return userRepository.findById(id).orElseThrow();
         User user = userRepository.findById(id).orElseThrow();
         return convertToDto(user);
+    }
+
+    @Override
+    public User findUserById(Long id){
+        return userRepository.findById(id).orElseThrow();
     }
 
     private UserDTO convertToDto(User user) {

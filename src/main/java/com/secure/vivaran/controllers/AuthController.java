@@ -224,20 +224,6 @@ public class AuthController {
     }
 
 
-    @PostMapping("/verify-2fa")
-    public ResponseEntity<String> verify2FA(@RequestParam int code) {
-        Long userId = authUtil.loggedInUserId();
-        boolean isValid = userService.validate2FACode(userId, code);
-        if (isValid) {
-            userService.enable2FA(userId);
-            return ResponseEntity.ok("2FA Verified");
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid 2FA Code");
-        }
-    }
-
-
     @GetMapping("/user/2fa-status")
     public ResponseEntity<?> get2FAStatus() {
         User user = authUtil.loggedInUser();
@@ -250,18 +236,56 @@ public class AuthController {
     }
 
 
-    @PostMapping("/public/verify-2fa-login")
-    public ResponseEntity<String> verify2FALogin(@RequestParam int code,
-                                                 @RequestParam String jwtToken) {
-        String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
-        User user = userService.findByUsername(username);
-        boolean isValid = userService.validate2FACode(user.getUserId(), code);
+    // For enabling 2FA initially
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verify2FA(@RequestParam int code) {
+        Long userId = authUtil.loggedInUserId();
+        boolean isValid = userService.validate2FACode(userId, code);
         if (isValid) {
-            return ResponseEntity.ok("2FA Verified");
+            userService.enable2FA(userId);
+            // Return new token with updated 2FA status
+            User user = userService.findUserById(userId);
+            String newToken = jwtUtils.generateNewTokenWithUpdated2FAStatus(user, UserDetailsImpl.build(user));
+            return ResponseEntity.ok(newToken);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid 2FA Code");
         }
     }
 
+    // For verifying 2FA during login
+    @PostMapping("/public/verify-2fa-login")
+    public ResponseEntity<String> verify2FALogin(@RequestParam int code,
+                                                 @RequestParam String jwtToken) {
+        try {
+            System.out.println("Received verification request - Code: " + code);
+            System.out.println("JWT Token received: " + jwtToken);
+
+            String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
+            System.out.println("Extracted username: " + username);
+
+            User user = userService.findByUsername(username);
+            System.out.println("Found user: " + (user != null ? user.getUserName() : "null"));
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            boolean isValid = userService.validate2FACode(user.getUserId(), code);
+            System.out.println("2FA code validation result: " + isValid);
+
+            if (isValid) {
+                String newToken = jwtUtils.generateNewTokenWithUpdated2FAStatus(user, UserDetailsImpl.build(user));
+                System.out.println("Generated new token: " + newToken);
+                return ResponseEntity.ok(newToken);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid 2FA Code");
+            }
+        } catch (Exception e) {
+            System.out.println("Error in 2FA verification: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing 2FA verification: " + e.getMessage());
+        }
+    }
 }
